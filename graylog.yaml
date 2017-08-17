@@ -1,0 +1,59 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: graylog
+  namespace: devops
+  labels:
+    component: graylog
+    role: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      component: graylog
+      role: master
+  template:
+    metadata:
+      labels:
+        component: graylog
+        role: master
+    spec:
+      containers:
+      - name: graylog
+        image: ccr.ccs.tencentyun.com/zhulux_sre/graylog:v2.3.0
+        ports:
+        - containerPort: 12300
+          name: tcpin
+          protocol: TCP
+        - containerPort: 9000
+          name: graylog-api
+          protocol: TCP
+        env:
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: "GRAYLOG_ELASTICSEARCH_HOSTS"
+          value: "http://elasticsearch:9200/"
+        - name: "GRAYLOT_ELASTICSEARCH_DISCOVERY_ENABLED"
+          value: "true"
+        - name: "GRAYLOG_MONGODB_URI"
+          value: "mongodb://mongo:27017/graylog"
+        - name: "GRAYLOG_PASSWORD_SECRET"
+          value: "somepasswordpepper"
+        - name: "GRAYLOG_ROOT_PASSWORD_SHA2"
+          value: "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918"
+        - name: "GRAYLOG_REST_TRANSPORT_URI"
+          value: "http://172.17.1.7:12900"
+        - name: "GRAYLOG_REST_LISTEN_URI"
+          value: "http://0.0.0.0:12900"
+        - name: "GRAYLOG_WEB_LISTEN_URI"
+          value: "http://0.0.0.0:9000"
+        - name: "GRAYLOG_ROOT_TIMEZONE"
+          value: "Asia/Shanghai"
+      imagePullSecrets:
+      - name: qcloudregistrykey
